@@ -9,8 +9,9 @@
 
 package net.mamoe.mirai.internal
 
+import net.mamoe.mirai.Bot
 import net.mamoe.mirai.internal.network.component.ComponentStorage
 
-internal interface BotWithComponents {
+internal interface BotWithComponents : Bot {
     val components: ComponentStorage
 }
