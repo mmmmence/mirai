@@ -310,8 +310,10 @@ internal open class MiraiImpl : IMirai, LowLevelApiAccessor {
         }
         if (event is BotEvent) {
             val bot = event.bot
-            if (bot is QQAndroidBot) {
+            if (bot is BotWithComponents) {
                 bot.components[EventDispatcher].broadcast(event)
+            } else {
+                super.broadcastEvent(event)
             }
         } else {
             super.broadcastEvent(event)

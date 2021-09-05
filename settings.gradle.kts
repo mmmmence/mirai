@@ -29,6 +29,7 @@ fun includeProject(projectPath: String, dir: String? = null) {
 include(":mirai-core-utils")
 include(":mirai-core-api")
 include(":mirai-core")
+include(":mirai-core-mock")
 include(":mirai-core-all")
 
 include(":binary-compatibility-validator")

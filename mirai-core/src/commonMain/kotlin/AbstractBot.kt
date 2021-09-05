@@ -38,7 +38,7 @@ import kotlin.coroutines.CoroutineContext
 internal abstract class AbstractBot constructor(
     final override val configuration: BotConfiguration,
     final override val id: Long,
-) : Bot, CoroutineScope {
+) : Bot, CoroutineScope, BotWithComponents {
     ///////////////////////////////////////////////////////////////////////////
     // lifecycle
     ///////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ internal abstract class AbstractBot constructor(
     /**
      * Bot level components plus network level components.
      */
-    abstract val components: ComponentStorage
+    abstract override val components: ComponentStorage
 
     final override val isOnline: Boolean get() = network.state == State.OK
     final override val eventChannel: EventChannel<BotEvent> =

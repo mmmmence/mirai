@@ -49,7 +49,18 @@ kotlin {
         attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
     }
 
-    jvm("jvm")
+    jvm("jvm") {
+        // jvmMock will be published via :mirai-core-mock
+        val test by compilations.getting
+        val main by compilations.getting
+        val mock by compilations.creating {
+            if (gradle.startParameter.taskNames.isNotEmpty()) {
+                associateWith(main)
+            }
+            val compileTask = compileKotlinTask
+            compileKotlinTask.kotlinOptions.freeCompilerArgs += "-Xexplicit-api=strict"
+        }
+    }
 
     /*
     jvm("android") {
@@ -110,6 +121,14 @@ kotlin {
             dependencies {
                 api(`kotlinx-coroutines-debug`)
                 //  implementation("net.mamoe:mirai-login-solver-selenium:1.0-dev-14")
+            }
+        }
+
+
+        val jvmMock by getting {
+            // For IDEA tab completion
+            if (gradle.startParameter.taskNames.isEmpty()) {
+                dependsOn(commonMain)
             }
         }
     }
