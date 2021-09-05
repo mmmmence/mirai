@@ -12,6 +12,7 @@ package net.mamoe.mirai.mock.contact
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.MockBotFactory
+import net.mamoe.mirai.mock.fsserver.TmpFsServer
 import net.mamoe.mirai.mock.internal.MockBotImpl
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.utils.BotConfiguration
@@ -23,6 +24,7 @@ internal class MockBotFactoryImpl : MockBotFactory {
             lateinit var nick_: String
             lateinit var configuration_: BotConfiguration
             var nameGenerator: NameGenerator = NameGenerator.DEFAULT
+            lateinit var tmpFsServer_: TmpFsServer
 
             override fun id(value: Long): MockBotFactory.BotBuilder = apply {
                 this.id = value
@@ -40,6 +42,10 @@ internal class MockBotFactoryImpl : MockBotFactory {
                 this.nameGenerator = value
             }
 
+            override fun tmpFsServer(server: TmpFsServer): MockBotFactory.BotBuilder = apply {
+                tmpFsServer_ = server
+            }
+
             override fun createNoInstanceRegister(): MockBot {
                 if (!::configuration_.isInitialized) {
                     configuration_ = BotConfiguration { }
@@ -47,7 +53,16 @@ internal class MockBotFactoryImpl : MockBotFactory {
                 if (!::nick_.isInitialized) {
                     nick_ = "Mock bot $id"
                 }
-                return MockBotImpl(configuration_, id, nick_, nameGenerator)
+                if (!::tmpFsServer_.isInitialized) {
+                    tmpFsServer_ = TmpFsServer.newInMemoryFsServer()
+                }
+                return MockBotImpl(
+                    configuration_,
+                    id,
+                    nick_,
+                    nameGenerator,
+                    tmpFsServer_
+                )
             }
 
             @Suppress("INVISIBLE_MEMBER")

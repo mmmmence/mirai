@@ -130,6 +130,11 @@ kotlin {
             if (gradle.startParameter.taskNames.isEmpty()) {
                 dependsOn(commonMain)
             }
+            dependencies {
+                api(`ktor-server-core`)
+                api(`ktor-server-netty`)
+                api(`java-in-memory-file-system`)
+            }
         }
     }
 }

@@ -22,24 +22,25 @@ import net.mamoe.mirai.event.events.BotEvent
 import net.mamoe.mirai.event.events.BotOnlineEvent
 import net.mamoe.mirai.event.events.BotReloginEvent
 import net.mamoe.mirai.internal.BotWithComponents
+import net.mamoe.mirai.internal.message.OnlineAudioImpl
 import net.mamoe.mirai.internal.network.component.ComponentStorage
 import net.mamoe.mirai.internal.network.component.ConcurrentComponentStorage
 import net.mamoe.mirai.internal.network.components.EventDispatcher
+import net.mamoe.mirai.message.data.AudioCodec
+import net.mamoe.mirai.message.data.OnlineAudio
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.contact.MockFriend
 import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.mock.contact.MockOtherClient
 import net.mamoe.mirai.mock.contact.MockStranger
+import net.mamoe.mirai.mock.fsserver.TmpFsServer
 import net.mamoe.mirai.mock.internal.components.MockEventDispatcherImpl
 import net.mamoe.mirai.mock.internal.contact.MockFriendImpl
 import net.mamoe.mirai.mock.internal.contact.MockGroupImpl
 import net.mamoe.mirai.mock.internal.contact.MockStrangerImpl
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.mock.utils.simpleMemberInfo
-import net.mamoe.mirai.utils.BotConfiguration
-import net.mamoe.mirai.utils.MiraiLogger
-import net.mamoe.mirai.utils.TestOnly
-import net.mamoe.mirai.utils.childScopeContext
+import net.mamoe.mirai.utils.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.CoroutineContext
 
@@ -47,8 +48,13 @@ internal class MockBotImpl(
     override val configuration: BotConfiguration,
     override val id: Long,
     override val nick: String,
-    override val nameGenerator: NameGenerator
+    override val nameGenerator: NameGenerator,
+    override val tmpFsServer: TmpFsServer,
 ) : MockBot, BotWithComponents {
+    init {
+        tmpFsServer.startup()
+    }
+
     override val components: ComponentStorage by lazy {
         ConcurrentComponentStorage {
             set(EventDispatcher, MockEventDispatcherImpl(coroutineContext, logger))
@@ -71,6 +77,7 @@ internal class MockBotImpl(
 
     @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
     override fun destroy() {
+        tmpFsServer.close()
         Bot._instances.remove(id, this)
         cancel(CancellationException("Bot destroy"))
     }
@@ -126,5 +133,20 @@ internal class MockBotImpl(
 
     override val coroutineContext: CoroutineContext by lazy {
         configuration.parentCoroutineContext.childScopeContext()
+    }
+
+    override suspend fun uploadOnlineAudio(resource: ExternalResource): OnlineAudio {
+        val md5 = resource.md5
+        val size = resource.size
+        val id = tmpFsServer.uploadFile(resource)
+        return OnlineAudioImpl(
+            filename = "$id.amr",
+            fileMd5 = md5,
+            fileSize = size,
+            codec = AudioCodec.SILK,
+            url = tmpFsServer.httpRoot + id,
+            length = size,
+            originalPtt = null
+        )
     }
 }

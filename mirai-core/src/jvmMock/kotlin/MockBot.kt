@@ -12,11 +12,14 @@ package net.mamoe.mirai.mock
 import net.mamoe.kjbb.JvmBlockingBridge
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.contact.ContactList
+import net.mamoe.mirai.message.data.OnlineAudio
 import net.mamoe.mirai.mock.contact.MockFriend
 import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.mock.contact.MockOtherClient
 import net.mamoe.mirai.mock.contact.MockStranger
+import net.mamoe.mirai.mock.fsserver.TmpFsServer
 import net.mamoe.mirai.mock.utils.NameGenerator
+import net.mamoe.mirai.utils.ExternalResource
 import net.mamoe.mirai.utils.cast
 
 @Suppress("unused")
@@ -56,6 +59,7 @@ public interface MockBot : Bot {
     /// All mock api will not broadcast event
 
     public val nameGenerator: NameGenerator
+    public val tmpFsServer: TmpFsServer
 
     @MockBotDSL
     public fun addGroup(id: Long, name: String): MockGroup
@@ -68,4 +72,7 @@ public interface MockBot : Bot {
 
     @MockBotDSL
     public fun addStranger(id: Long, name: String): MockStranger
+
+    @MockBotDSL
+    public suspend fun uploadOnlineAudio(resource: ExternalResource): OnlineAudio
 }

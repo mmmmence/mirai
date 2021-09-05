@@ -12,6 +12,7 @@ package net.mamoe.mirai.mock
 import net.mamoe.mirai.BotFactory
 import net.mamoe.mirai.Mirai
 import net.mamoe.mirai.mock.contact.MockBotFactoryImpl
+import net.mamoe.mirai.mock.fsserver.TmpFsServer
 import net.mamoe.mirai.mock.internal.MockMiraiImpl
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.utils.BotConfiguration
@@ -31,6 +32,9 @@ public interface MockBotFactory : BotFactory {
 
         @MockBotDSL
         public fun nameGenerator(value: NameGenerator): BotBuilder
+
+        @MockBotDSL
+        public fun tmpFsServer(server: TmpFsServer): BotBuilder
 
         @MockBotDSL
         public fun create(): MockBot

@@ -24,6 +24,7 @@ import net.mamoe.mirai.mock.contact.MockNormalMember
 import net.mamoe.mirai.mock.contact.announcement.MockAnnouncements
 import net.mamoe.mirai.mock.internal.msgsrc.OnlineMsgSrcToGroup
 import net.mamoe.mirai.mock.internal.msgsrc.newMsgSrc
+import net.mamoe.mirai.mock.internal.remotefile.MockRemoteFileRoot
 import net.mamoe.mirai.mock.utils.broadcastBlocking
 import net.mamoe.mirai.mock.utils.mock
 import net.mamoe.mirai.utils.ExternalResource
@@ -196,8 +197,9 @@ internal class MockGroupImpl(
         return true
     }
 
-    override val filesRoot: RemoteFile
-        get() = TODO("Not yet implemented")
+    override val filesRoot: RemoteFile by lazy {
+        MockRemoteFileRoot(this)
+    }
 
     override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio = resource.mockUploadAudio()
 

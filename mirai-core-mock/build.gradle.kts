@@ -37,6 +37,9 @@ dependencies {
     api(project(":mirai-core-utils"))
     val code = realMockCode()
     testApi(code)
+    api(`ktor-server-core`)
+    api(`ktor-server-netty`)
+    api(`java-in-memory-file-system`)
 }
 
 // tasks.withType<KotlinJvmCompile> { enabled = false }
@@ -52,3 +55,5 @@ tasks.named("sourcesJar", Jar::class) {
         from(it.kotlin)
     }
 }
+
+tasks.named("shadowJar") { enabled = false }

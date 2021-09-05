@@ -6,7 +6,7 @@
  *
  * https://github.com/mamoe/mirai/blob/dev/LICENSE
  */
-@file:Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+@file:Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER", "NOTHING_TO_INLINE")
 
 package net.mamoe.mirai.mock.test
 
@@ -24,10 +24,13 @@ import net.mamoe.mirai.mock.contact.MockNormalMember
 import net.mamoe.mirai.mock.contact.announcement.MockOnlineAnnouncement
 import net.mamoe.mirai.mock.internal.MockBotImpl
 import net.mamoe.mirai.mock.utils.*
+import net.mamoe.mirai.utils.ExternalResource.Companion.toAutoCloseable
+import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
+import java.net.URL
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.reflect.jvm.jvmName
@@ -293,7 +296,7 @@ internal class MockBotTest {
         runAndReceiveEventBroadcast {
             nudged.nudge().startAction(nudgeSender)
             nudged.nudge().sendTo(group)
-        }.let { events->
+        }.let { events ->
             assertEquals(2, events.size)
             assertIsInstance<NudgeEvent>(events[0]) {
                 assertSame(nudgeSender, this.from)
@@ -306,6 +309,25 @@ internal class MockBotTest {
                 assertSame(group, this.subject)
             }
         }
+    }
+
+    @Test
+    internal fun testGroupFile() = runBlocking<Unit> {
+        val fsroot = bot.addGroup(5417, "58aw").filesRoot
+        fsroot.resolve("helloworld.txt").uploadAndSend(
+            "HelloWorld".toByteArray().toExternalResource().toAutoCloseable()
+        )
+        assertEquals(1, fsroot.listFilesCollection().size)
+        assertEquals(
+            "HelloWorld",
+            fsroot.resolve("helloworld.txt")
+                .getDownloadInfo()!!
+                .url.toUrl()
+                .also { println("Mock file url: $it") }
+                .readText()
+        )
+        fsroot.resolve("helloworld.txt").delete()
+        assertEquals(0, fsroot.listFilesCollection().size)
     }
 
     //<editor-fold defaultstate="collapsed" desc="Utils">
@@ -349,5 +371,8 @@ internal class MockBotTest {
     internal fun List<Event>.dropMsgChat() = filterNot {
         it is MessageEvent || it is MessagePreSendEvent || it is MessagePostSendEvent<*>
     }
+
+    internal inline fun String.toUrl(): URL = URL(this)
+
     //</editor-fold>
 }
