@@ -11,6 +11,7 @@ package net.mamoe.mirai.mock.contact
 
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.MemberPermission
+import net.mamoe.mirai.mock.MockBotDSL
 
 public interface MockMember : Member, MockContact {
     override var nick: String
@@ -19,7 +20,11 @@ public interface MockMember : Member, MockContact {
 
     // Mock api, no event broadcast
     override var permission: MemberPermission
-    public fun modifyNameCard(value: String)
-    public fun modifySpecialTitle(value: String)
+
+    @MockBotDSL
+    public fun setNameCardNoEventBroadcast(value: String)
+
+    @MockBotDSL
+    public fun setSpecialTitleNoEventBroadcast(value: String)
 
 }

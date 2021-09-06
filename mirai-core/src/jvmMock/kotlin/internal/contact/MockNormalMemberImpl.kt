@@ -66,11 +66,11 @@ internal class MockNormalMemberImpl(
             _specialTitle = value
         }
 
-    override fun modifyNameCard(value: String) {
+    override fun setNameCardNoEventBroadcast(value: String) {
         _nameCard = value
     }
 
-    override fun modifySpecialTitle(value: String) {
+    override fun setSpecialTitleNoEventBroadcast(value: String) {
         _specialTitle = value
     }
 

@@ -33,7 +33,7 @@ internal class MockAnonymousMemberImpl(
 
     override val anonymousId: String,
     override val group: MockGroup,
-    override val nameCard: String
+    override var nameCard: String
 ) : AbstractMockContact(coroutineContext, bot, id), MockAnonymousMember {
     override fun newMessagePreSend(message: Message): MessagePreSendEvent {
         TODO("Not yet implemented")
@@ -70,10 +70,12 @@ internal class MockAnonymousMemberImpl(
         get() = nameCard
         set(value) {}
 
-    override fun modifyNameCard(value: String) {
+    override fun setNameCardNoEventBroadcast(value: String) {
+        nameCard = value
     }
 
-    override fun modifySpecialTitle(value: String) {
+    override fun setSpecialTitleNoEventBroadcast(value: String) {
+        // noop for anonymous
     }
 
     override suspend fun says(message: MessageChain): MessageChain {
