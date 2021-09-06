@@ -39,7 +39,7 @@ import kotlin.test.*
 @Suppress("RemoveExplicitTypeArguments")
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 internal class MockBotTest {
-    internal val bot = MockBotFactory.INSTANCE.newMockBotBuilder()
+    internal val bot = MockBotFactory.newMockBotBuilder()
         .id(984651187)
         .nick("Sakura")
         .create()

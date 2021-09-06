@@ -16,15 +16,20 @@ import net.mamoe.mirai.mock.fsserver.TmpFsServer
 import net.mamoe.mirai.mock.internal.MockBotImpl
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.utils.BotConfiguration
+import net.mamoe.mirai.utils.lateinitMutableProperty
 
 internal class MockBotFactoryImpl : MockBotFactory {
     override fun newMockBotBuilder(): MockBotFactory.BotBuilder {
         return object : MockBotFactory.BotBuilder {
             var id: Long = 0
-            lateinit var nick_: String
-            lateinit var configuration_: BotConfiguration
+            var nick_: String by lateinitMutableProperty {
+                "Mock Bot $id"
+            }
+            var configuration_: BotConfiguration by lateinitMutableProperty { BotConfiguration { } }
             var nameGenerator: NameGenerator = NameGenerator.DEFAULT
-            lateinit var tmpFsServer_: TmpFsServer
+            var tmpFsServer_: TmpFsServer by lateinitMutableProperty {
+                TmpFsServer.newInMemoryFsServer()
+            }
 
             override fun id(value: Long): MockBotFactory.BotBuilder = apply {
                 this.id = value
@@ -47,21 +52,12 @@ internal class MockBotFactoryImpl : MockBotFactory {
             }
 
             override fun createNoInstanceRegister(): MockBot {
-                if (!::configuration_.isInitialized) {
-                    configuration_ = BotConfiguration { }
-                }
-                if (!::nick_.isInitialized) {
-                    nick_ = "Mock bot $id"
-                }
-                if (!::tmpFsServer_.isInitialized) {
-                    tmpFsServer_ = TmpFsServer.newInMemoryFsServer()
-                }
                 return MockBotImpl(
                     configuration_,
                     id,
                     nick_,
                     nameGenerator,
-                    tmpFsServer_
+                    tmpFsServer_,
                 )
             }
 

@@ -47,10 +47,7 @@ public interface MockBotFactory : BotFactory {
     public fun newMockBotBuilder(): BotBuilder
 
     @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
-    public companion object {
-        @JvmField
-        public val INSTANCE: MockBotFactory = MockBotFactoryImpl()
-
+    public companion object : MockBotFactory by MockBotFactoryImpl() {
         init {
             Mirai
             net.mamoe.mirai._MiraiInstance.set(MockMiraiImpl())
