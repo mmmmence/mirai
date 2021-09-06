@@ -334,7 +334,7 @@ internal class MockRemoteFile(
             filename = info.name,
             id = info.id,
             path = info.solvePath(root),
-            url = contact.bot.mock().tmpFsServer.httpRoot + info.id,
+            url = contact.bot.mock().tmpFsServer.getHttpUrl(info.id),
             sha1 = info.sha1.clone(),
             md5 = info.md5.clone(),
         )

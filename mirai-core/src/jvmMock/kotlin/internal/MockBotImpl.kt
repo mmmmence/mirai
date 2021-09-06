@@ -144,7 +144,7 @@ internal class MockBotImpl(
             fileMd5 = md5,
             fileSize = size,
             codec = AudioCodec.SILK,
-            url = tmpFsServer.httpRoot + id,
+            url = tmpFsServer.getHttpUrl(id),
             length = size,
             originalPtt = null
         )

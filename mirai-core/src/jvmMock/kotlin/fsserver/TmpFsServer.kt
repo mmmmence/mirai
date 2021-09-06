@@ -19,6 +19,7 @@ import java.nio.file.FileSystem
 
 @JvmBlockingBridge
 public interface TmpFsServer : Closeable {
+    public val httpRoot: String
     public val fsSystem: FileSystem
 
     /**
@@ -27,15 +28,18 @@ public interface TmpFsServer : Closeable {
     public suspend fun uploadFile(resource: ExternalResource): String
 
     public suspend fun uploadFileAndGetUrl(resource: ExternalResource): String {
-        return httpRoot + uploadFile(resource)
+        return getHttpUrl(uploadFile(resource))
     }
 
-    public val httpRoot: String
     public fun startup()
+
+    public fun getHttpUrl(id: String): String {
+        return httpRoot + id
+    }
 
     public companion object {
         @JvmStatic
-        public fun ofFsServer(fs: FileSystem, port: Int = 0): TmpFsServer {
+        public fun ofFsSystem(fs: FileSystem, port: Int = 0): TmpFsServer {
             return FsServerImpl(fs, port)
         }
 
