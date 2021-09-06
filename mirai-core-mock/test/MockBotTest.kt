@@ -17,6 +17,7 @@ import net.mamoe.mirai.contact.announcement.AnnouncementParameters
 import net.mamoe.mirai.event.Event
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.*
+import net.mamoe.mirai.message.data.MessageSource.Key.recall
 import net.mamoe.mirai.message.data.OnlineMessageSource
 import net.mamoe.mirai.message.data.source
 import net.mamoe.mirai.mock.MockBotFactory
@@ -214,14 +215,20 @@ internal class MockBotTest {
     @Test
     internal fun testMessageRecallEventBroadcast() = runBlocking<Unit> {
         val group = bot.addGroup(8484846, "g")
-        val admin = group.addMember0(simpleMemberInfo(945474, "root", permission = MemberPermission.ADMINISTRATOR))
+        val admin = group.addMember0(simpleMemberInfo(945474, "admin", permission = MemberPermission.ADMINISTRATOR))
         val sender = group.addMember0(simpleMemberInfo(178711, "usr", permission = MemberPermission.MEMBER))
 
         runAndReceiveEventBroadcast {
             sender.says("Test").mockFireRecalled()
             sender.says("Admin recall").mockFireRecalled(admin)
+            group.sendMessage("Hello world").mockFireRecalled(admin)
+            sender.says("Hi").recall()
+            admin.says("I'm admin").let { resp ->
+                resp.recall()
+                assertFails { resp.recall() }.let(::println)
+            }
         }.dropMsgChat().let { events ->
-            assertEquals(2, events.size)
+            assertEquals(5, events.size)
             assertIsInstance<MessageRecallEvent.GroupRecall>(events[0]) {
                 assertNull(operator)
                 assertSame(sender, author)
@@ -229,6 +236,33 @@ internal class MockBotTest {
             assertIsInstance<MessageRecallEvent.GroupRecall>(events[1]) {
                 assertSame(admin, operator)
                 assertSame(sender, author)
+            }
+            assertIsInstance<MessageRecallEvent.GroupRecall>(events[2]) {
+                assertSame(admin, operator)
+                assertSame(group.botAsMember, author)
+            }
+            assertIsInstance<MessageRecallEvent.GroupRecall>(events[3]) {
+                assertSame(null, operator)
+                assertSame(sender, author)
+            }
+            assertIsInstance<MessageRecallEvent.GroupRecall>(events[4]) {
+                assertSame(null, operator)
+                assertSame(admin, author)
+            }
+        }
+
+        val root = group.addMember0(simpleMemberInfo(54986565, "root", permission = MemberPermission.OWNER))
+
+        runAndReceiveEventBroadcast {
+            sender.says("0").runAndAssertFails { recall() }
+            admin.says("0").runAndAssertFails { recall() }
+            root.says("0").runAndAssertFails { recall() }
+            group.sendMessage("Hi").recall()
+        }.dropMsgChat().let { events ->
+            assertEquals(1, events.size)
+            assertIsInstance<MessageRecallEvent.GroupRecall>(events[0]) {
+                assertEquals(group.botAsMember, author)
+                assertEquals(null, operator)
             }
         }
     }
@@ -373,6 +407,10 @@ internal class MockBotTest {
     }
 
     internal inline fun String.toUrl(): URL = URL(this)
+
+    internal inline fun <T> T.runAndAssertFails(block: T.() -> Unit) {
+        assertFails { block() }
+    }
 
     //</editor-fold>
 }

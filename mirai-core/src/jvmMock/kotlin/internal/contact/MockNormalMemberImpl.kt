@@ -121,7 +121,7 @@ internal class MockNormalMemberImpl(
     }
 
     override suspend fun says(message: MessageChain): MessageChain {
-        val src = newMsgSrc { ids, internalIds, time ->
+        val src = newMsgSrc(true) { ids, internalIds, time ->
             OnlineMsgSrcFromGroup(ids, internalIds, time, message, bot, this)
         }
         val msg = src plusMsg message
@@ -138,7 +138,7 @@ internal class MockNormalMemberImpl(
     }
 
     override fun newMessageSource(message: MessageChain): OnlineMessageSource.Outgoing {
-        return newMsgSrc { ids, internalIds, time ->
+        return newMsgSrc(false) { ids, internalIds, time ->
             OnlineMsgSrcToTemp(ids, internalIds, time, message, bot, bot, this)
         }
     }

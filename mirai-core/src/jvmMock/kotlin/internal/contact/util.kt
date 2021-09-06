@@ -9,9 +9,12 @@
 
 package net.mamoe.mirai.mock.internal.contact
 
+import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.PermissionDeniedException
+import net.mamoe.mirai.internal.contact.uin
 import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.utils.ExternalResource
 import net.mamoe.mirai.utils.toUHexString
 
@@ -53,3 +56,11 @@ internal suspend fun ExternalResource.mockUploadVoice() = inResource {
         _url = "https://www.baidu.com"
     )
 }
+
+internal const val AQQ_RECALL_FAILED_MESSAGE: String = "No message meets the requirements"
+
+internal val Group.mockUin: Long
+    get() = when (this) {
+        is MockGroup -> this.uin
+        else -> this.uin
+    }

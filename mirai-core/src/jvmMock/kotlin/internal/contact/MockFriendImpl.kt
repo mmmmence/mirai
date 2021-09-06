@@ -47,7 +47,7 @@ internal class MockFriendImpl(
     }
 
     override fun newMessageSource(message: MessageChain): OnlineMessageSource.Outgoing {
-        return newMsgSrc { ids, internalIds, time ->
+        return newMsgSrc(false) { ids, internalIds, time ->
             OnlineMsgSrcToFriend(ids, internalIds, time, message, bot, bot, this)
         }
     }
@@ -66,7 +66,7 @@ internal class MockFriendImpl(
     override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio = resource.mockUploadAudio()
 
     override suspend fun says(message: MessageChain): MessageChain {
-        val src = newMsgSrc { ids, internalIds, time ->
+        val src = newMsgSrc(true) { ids, internalIds, time ->
             OnlineMsgSrcFromFriend(ids, internalIds, time, message, bot, this)
         }
         val msg = src plusMsg message

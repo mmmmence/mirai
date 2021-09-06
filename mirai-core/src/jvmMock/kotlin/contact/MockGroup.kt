@@ -30,6 +30,7 @@ public interface MockGroup : Group, MockContact {
     override val bot: MockBot
     override val members: ContactList<MockNormalMember>
     override val owner: MockNormalMember
+    override val botAsMember: MockNormalMember
     override val announcements: MockAnnouncements
 
     @MockBotDSL

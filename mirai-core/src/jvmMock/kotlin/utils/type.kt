@@ -16,13 +16,16 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.broadcast
 import net.mamoe.mirai.event.events.MessageRecallEvent
 import net.mamoe.mirai.event.events.NudgeEvent
+import net.mamoe.mirai.message.MessageReceipt
 import net.mamoe.mirai.message.action.Nudge
 import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.MessageSource
 import net.mamoe.mirai.message.data.OnlineMessageSource
 import net.mamoe.mirai.message.data.source
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.MockBotDSL
 import net.mamoe.mirai.mock.contact.*
+import net.mamoe.mirai.mock.database.removeMessageInfo
 import net.mamoe.mirai.utils.cast
 import java.util.*
 import kotlin.contracts.contract
@@ -121,11 +124,16 @@ public suspend infix fun Nudge.startAction(actor: UserOrBot) {
 
 @MockBotDSL
 public suspend fun MessageChain.mockFireRecalled(operator: Contact? = null) {
-    val source = this.source
+    source.mockFireRecalled(operator)
+}
+
+public suspend fun MessageSource.mockFireRecalled(operator: Contact? = null) {
+    val source = this
     if (source is OnlineMessageSource) {
         val from = source.sender
         when (val target = source.target) {
             is Group -> {
+                from.bot.mock().msgDatabase.removeMessageInfo(source)
                 MessageRecallEvent.GroupRecall(
                     source.bot,
                     from.id,
@@ -134,11 +142,15 @@ public suspend fun MessageChain.mockFireRecalled(operator: Contact? = null) {
                     source.time,
                     operator?.cast(),
                     target,
-                    from.cast()
+                    when (from) {
+                        is Bot -> target.botAsMember
+                        else -> from.cast()
+                    }
                 ).broadcast()
                 return
             }
             is Friend -> {
+                from.bot.mock().msgDatabase.removeMessageInfo(source)
                 MessageRecallEvent.FriendRecall(
                     source.bot,
                     source.ids,
@@ -152,4 +164,9 @@ public suspend fun MessageChain.mockFireRecalled(operator: Contact? = null) {
         }
     }
     error("Unsupported message source type: ${source.javaClass}")
+}
+
+@MockBotDSL
+public suspend fun MessageReceipt<*>.mockFireRecalled(operator: Contact? = null) {
+    this.source.mockFireRecalled(operator)
 }

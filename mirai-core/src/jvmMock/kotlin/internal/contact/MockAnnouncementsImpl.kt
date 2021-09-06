@@ -35,7 +35,7 @@ internal class MockAnnouncementsImpl(
 
     override suspend fun delete(fid: String): Boolean = announcements.remove(fid) != null
 
-    override suspend fun get(fid: String): OnlineAnnouncement? = announcements.get(fid)
+    override suspend fun get(fid: String): OnlineAnnouncement? = announcements[fid]
 
     override fun publish(announcement: MockOnlineAnnouncement) {
         val annoc = if (announcement.fid.isEmpty()) {

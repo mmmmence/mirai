@@ -123,9 +123,13 @@ internal class MockGroupImpl(
         }
 
     override lateinit var owner: MockNormalMember
-    override lateinit var botAsMember: NormalMember
+    override lateinit var botAsMember: MockNormalMember
     override val members: ContactList<MockNormalMember> = ContactList()
-    override fun get(id: Long): MockNormalMember? = members[id]
+    override fun get(id: Long): MockNormalMember? {
+        if (id == bot.id) return botAsMember
+        return members[id]
+    }
+
     override fun contains(id: Long): Boolean = members.any { it.id == id }
 
 
@@ -181,7 +185,7 @@ internal class MockGroupImpl(
     }
 
     override fun newMessageSource(message: MessageChain): OnlineMessageSource.Outgoing {
-        return newMsgSrc { ids, internalIds, time ->
+        return newMsgSrc(false) { ids, internalIds, time ->
             OnlineMsgSrcToGroup(ids, internalIds, time, message, bot, bot, this)
         }
     }

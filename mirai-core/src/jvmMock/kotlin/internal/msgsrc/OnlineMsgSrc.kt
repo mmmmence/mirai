@@ -10,16 +10,11 @@
 package net.mamoe.mirai.mock.internal.msgsrc
 
 import net.mamoe.mirai.Bot
-import net.mamoe.mirai.contact.Friend
-import net.mamoe.mirai.contact.Group
-import net.mamoe.mirai.contact.Member
-import net.mamoe.mirai.contact.Stranger
+import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.MessageSourceKind
 import net.mamoe.mirai.message.data.OnlineMessageSource
 import net.mamoe.mirai.mock.internal.contact.AbstractMockContact
-import net.mamoe.mirai.utils.currentTimeSeconds
-import kotlin.math.absoluteValue
-import kotlin.random.Random
 
 internal class OnlineMsgSrcToGroup(
     override val ids: IntArray,
@@ -113,12 +108,44 @@ internal typealias MsgSrcConstructor<R> = (
 ) -> R
 
 internal inline fun <R> AbstractMockContact.newMsgSrc(
+    isSaying: Boolean,
     constructor: MsgSrcConstructor<R>,
 ): R {
+    val db = bot.msgDatabase
+    val info = if (isSaying) {
+        db.newMessageInfo(
+            sender = id,
+            subject = when (this) {
+                is Member -> group.id
+                is Stranger,
+                is Friend,
+                -> bot.id
+                else -> error("Invalid contact: $this")
+            },
+            kind = when (this) {
+                is Member -> MessageSourceKind.GROUP
+                is Stranger -> MessageSourceKind.STRANGER
+                is Friend -> MessageSourceKind.FRIEND
+                else -> error("Invalid contact: $this")
+            }
+        )
+    } else {
+        db.newMessageInfo(
+            sender = bot.id,
+            subject = this.id,
+            kind = when (this) {
+                is NormalMember -> MessageSourceKind.TEMP
+                is Stranger -> MessageSourceKind.STRANGER
+                is Friend -> MessageSourceKind.FRIEND
+                is Group -> MessageSourceKind.GROUP
+                else -> error("Invalid contact: $this")
+            }
+        )
+    }
     return constructor(
-        intArrayOf(seqIdCounter.getAndIncrement()),
-        intArrayOf(Random.nextInt().absoluteValue),
-        currentTimeSeconds().toInt(),
+        intArrayOf(info.id1),
+        intArrayOf(info.id2),
+        info.time.toInt(),
     )
 }
 

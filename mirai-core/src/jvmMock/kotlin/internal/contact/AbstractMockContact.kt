@@ -32,8 +32,6 @@ internal abstract class AbstractMockContact(
     override val id: Long
 ) : MockContact {
 
-    val seqIdCounter = AtomicInteger(54107)
-
     override val coroutineContext: CoroutineContext = coroutineContext.childScopeContext()
 
     /**

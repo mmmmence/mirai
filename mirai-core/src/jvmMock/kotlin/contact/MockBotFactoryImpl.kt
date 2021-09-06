@@ -12,6 +12,7 @@ package net.mamoe.mirai.mock.contact
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.MockBotFactory
+import net.mamoe.mirai.mock.database.MessageDatabase
 import net.mamoe.mirai.mock.fsserver.TmpFsServer
 import net.mamoe.mirai.mock.internal.MockBotImpl
 import net.mamoe.mirai.mock.utils.NameGenerator
@@ -29,6 +30,9 @@ internal class MockBotFactoryImpl : MockBotFactory {
             var nameGenerator: NameGenerator = NameGenerator.DEFAULT
             var tmpFsServer_: TmpFsServer by lateinitMutableProperty {
                 TmpFsServer.newInMemoryFsServer()
+            }
+            var msgDb: MessageDatabase by lateinitMutableProperty {
+                MessageDatabase.newDefaultDatabase()
             }
 
             override fun id(value: Long): MockBotFactory.BotBuilder = apply {
@@ -51,6 +55,10 @@ internal class MockBotFactoryImpl : MockBotFactory {
                 tmpFsServer_ = server
             }
 
+            override fun msgDatabase(db: MessageDatabase): MockBotFactory.BotBuilder = apply {
+                msgDb = db
+            }
+
             override fun createNoInstanceRegister(): MockBot {
                 return MockBotImpl(
                     configuration_,
@@ -58,6 +66,7 @@ internal class MockBotFactoryImpl : MockBotFactory {
                     nick_,
                     nameGenerator,
                     tmpFsServer_,
+                    msgDb,
                 )
             }
 

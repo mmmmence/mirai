@@ -10,7 +10,10 @@
 package net.mamoe.mirai.mock.internal
 
 import net.mamoe.mirai.Bot
-import net.mamoe.mirai.contact.*
+import net.mamoe.mirai.contact.Contact
+import net.mamoe.mirai.contact.ContactOrBot
+import net.mamoe.mirai.contact.MemberPermission
+import net.mamoe.mirai.contact.getMember
 import net.mamoe.mirai.event.broadcast
 import net.mamoe.mirai.event.events.*
 import net.mamoe.mirai.internal.MiraiImpl
@@ -20,10 +23,11 @@ import net.mamoe.mirai.message.data.MessageSourceKind
 import net.mamoe.mirai.message.data.OfflineMessageSource
 import net.mamoe.mirai.message.data.OnlineMessageSource
 import net.mamoe.mirai.mock.contact.MockGroup
-import net.mamoe.mirai.mock.internal.contact.requireBotPermissionHigherThanThis
+import net.mamoe.mirai.mock.database.queryMessageInfo
+import net.mamoe.mirai.mock.internal.contact.AQQ_RECALL_FAILED_MESSAGE
 import net.mamoe.mirai.mock.utils.mock
 import net.mamoe.mirai.mock.utils.simpleMemberInfo
-import net.mamoe.mirai.utils.cast
+import net.mamoe.mirai.utils.currentTimeSeconds
 
 internal class MockMiraiImpl : MiraiImpl() {
     override suspend fun solveBotInvitedJoinGroupRequestEvent(
@@ -136,14 +140,54 @@ internal class MockMiraiImpl : MiraiImpl() {
         messageIds: IntArray,
         messageInternalIds: IntArray,
         time: Int
-    ): Boolean = false // No author found
+    ): Boolean {
+        val info = bot.mock().msgDatabase.queryMessageInfo(messageIds, messageInternalIds) ?: return false
+        if (info.kind != MessageSourceKind.FRIEND) return false
+        if (info.sender != bot.id) return false
+        if (currentTimeSeconds() - info.time > 120) return false
+        bot.msgDatabase.removeMessageInfo(info.msgId)
+
+        // MessageRecallEvent.FriendRecall() // TODO: Unknown Logic
+
+        return true
+    }
 
     override suspend fun recallGroupMessageRaw(
         bot: Bot,
         groupCode: Long,
         messageIds: IntArray,
         messageInternalIds: IntArray
-    ): Boolean = false // No author found
+    ): Boolean {
+        val info = bot.mock().msgDatabase.queryMessageInfo(messageIds, messageInternalIds) ?: return false
+        if (info.kind != MessageSourceKind.GROUP) return false
+        val group = bot.getGroup(info.subject) ?: return false
+        val canDelete = when (group.botPermission) {
+            MemberPermission.OWNER -> true
+            MemberPermission.ADMINISTRATOR -> kotlin.run w@{
+                val member = group.getMember(info.sender) ?: return@w true
+                member.permission == MemberPermission.MEMBER
+            }
+            else -> kotlin.run w@{
+                if (info.sender != bot.id) return@w false
+                currentTimeSeconds() - info.time <= 120
+            }
+        }
+        if (!canDelete) return false
+        bot.msgDatabase.removeMessageInfo(info.msgId)
+
+        MessageRecallEvent.GroupRecall(
+            bot,
+            info.sender,
+            messageIds,
+            messageInternalIds,
+            info.time.toInt(),
+            null,
+            group,
+            group[info.sender] ?: return true
+        ).broadcast()
+
+        return true
+    }
 
     override suspend fun recallGroupTempMessageRaw(
         bot: Bot,
@@ -152,37 +196,36 @@ internal class MockMiraiImpl : MiraiImpl() {
         messageIds: IntArray,
         messageInternalIds: IntArray,
         time: Int
-    ): Boolean = false // No author found
+    ): Boolean = false // TODO: No recall event
 
     override suspend fun recallMessage(bot: Bot, source: MessageSource) {
+        fun doFailed() {
+            error("Failed to recall message #${source.ids.contentToString()}: $AQQ_RECALL_FAILED_MESSAGE")
+        }
         if (source is OnlineMessageSource) {
             when (source) {
                 is OnlineMessageSource.Incoming.FromFriend,
                 is OnlineMessageSource.Outgoing.ToFriend,
                 -> {
-                    MessageRecallEvent.FriendRecall(
-                        bot = source.bot,
-                        messageIds = source.ids,
-                        messageInternalIds = source.internalIds,
-                        messageTime = source.time,
-                        operatorId = source.subject.id,
-                        operator = source.subject.cast(),
-                    ).broadcast()
+                    val resp = recallFriendMessageRaw(
+                        bot,
+                        source.subject.id,
+                        source.ids,
+                        source.internalIds,
+                        source.time
+                    )
+                    if (!resp) doFailed()
                 }
                 is OnlineMessageSource.Incoming.FromGroup,
                 is OnlineMessageSource.Outgoing.ToGroup,
                 -> {
-                    source.sender.cast<Member>().requireBotPermissionHigherThanThis("recall message")
-                    MessageRecallEvent.GroupRecall(
-                        bot = source.bot,
-                        authorId = source.sender.id,
-                        messageIds = source.ids,
-                        messageInternalIds = source.internalIds,
-                        messageTime = source.time,
-                        operator = source.subject.cast<Group>().botAsMember,
-                        group = source.subject.cast(),
-                        author = source.sender.cast()
-                    ).broadcast()
+                    val resp = recallGroupMessageRaw(
+                        bot,
+                        source.subject.id,
+                        source.ids,
+                        source.internalIds
+                    )
+                    if (!resp) doFailed()
                 }
                 else -> {
                     // TODO: No Event
@@ -192,26 +235,23 @@ internal class MockMiraiImpl : MiraiImpl() {
             source as OfflineMessageSource
             when (source.kind) {
                 MessageSourceKind.GROUP -> {
-                    MessageRecallEvent.GroupRecall(
-                        bot = bot,
-                        authorId = source.fromId,
-                        messageIds = source.ids,
-                        messageInternalIds = source.internalIds,
-                        messageTime = source.time,
-                        operator = bot.getGroupOrFail(source.targetId).botAsMember,
-                        group = bot.getGroupOrFail(source.targetId),
-                        author = bot.getGroupOrFail(source.targetId).getOrFail(source.fromId),
-                    ).broadcast()
+                    val resp = recallGroupMessageRaw(
+                        bot,
+                        source.targetId,
+                        source.ids,
+                        source.internalIds
+                    )
+                    if (!resp) doFailed()
                 }
                 MessageSourceKind.FRIEND -> {
-                    MessageRecallEvent.FriendRecall(
-                        bot = bot,
-                        messageIds = source.ids,
-                        messageInternalIds = source.internalIds,
-                        messageTime = source.time,
-                        operatorId = source.fromId,
-                        operator = bot.getFriendOrFail(source.fromId),
-                    ).broadcast()
+                    val resp = recallFriendMessageRaw(
+                        bot,
+                        source.targetId,
+                        source.ids,
+                        source.internalIds,
+                        source.time
+                    )
+                    if (!resp) doFailed()
                 }
                 MessageSourceKind.TEMP -> {
                     // TODO: No Event

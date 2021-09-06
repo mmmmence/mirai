@@ -79,7 +79,7 @@ internal class MockAnonymousMemberImpl(
     }
 
     override suspend fun says(message: MessageChain): MessageChain {
-        val src = newMsgSrc { ids, internalIds, time ->
+        val src = newMsgSrc(true) { ids, internalIds, time ->
             OnlineMsgSrcFromGroup(ids, internalIds, time, message, bot, this)
         }
         val msg = src plusMsg message
