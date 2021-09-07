@@ -12,6 +12,7 @@ package net.mamoe.mirai.mock.test
 
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import net.mamoe.mirai.Mirai
 import net.mamoe.mirai.contact.MemberPermission
 import net.mamoe.mirai.contact.announcement.AnnouncementParameters
 import net.mamoe.mirai.event.Event
@@ -24,6 +25,7 @@ import net.mamoe.mirai.mock.MockBotFactory
 import net.mamoe.mirai.mock.contact.MockNormalMember
 import net.mamoe.mirai.mock.contact.announcement.MockOnlineAnnouncement
 import net.mamoe.mirai.mock.internal.MockBotImpl
+import net.mamoe.mirai.mock.userprofile.buildUserProfile
 import net.mamoe.mirai.mock.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toAutoCloseable
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
@@ -362,6 +364,16 @@ internal class MockBotTest {
         )
         fsroot.resolve("helloworld.txt").delete()
         assertEquals(0, fsroot.listFilesCollection().size)
+    }
+
+    @Test
+    internal fun testQueryProfile() = runBlocking<Unit> {
+        val service = bot.userProfileService
+        val profile = buildUserProfile {
+            nickname("Test0")
+        }
+        service.putUserProfile(1, profile)
+        assertSame(profile, Mirai.queryProfile(bot, 1))
     }
 
     //<editor-fold defaultstate="collapsed" desc="Utils">

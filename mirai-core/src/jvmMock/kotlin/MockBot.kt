@@ -19,6 +19,7 @@ import net.mamoe.mirai.mock.contact.MockOtherClient
 import net.mamoe.mirai.mock.contact.MockStranger
 import net.mamoe.mirai.mock.database.MessageDatabase
 import net.mamoe.mirai.mock.fsserver.TmpFsServer
+import net.mamoe.mirai.mock.userprofile.UserProfileService
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.utils.ExternalResource
 import net.mamoe.mirai.utils.cast
@@ -62,6 +63,7 @@ public interface MockBot : Bot {
     public val nameGenerator: NameGenerator
     public val tmpFsServer: TmpFsServer
     public val msgDatabase: MessageDatabase
+    public val userProfileService: UserProfileService
 
     @MockBotDSL
     public fun addGroup(id: Long, name: String): MockGroup

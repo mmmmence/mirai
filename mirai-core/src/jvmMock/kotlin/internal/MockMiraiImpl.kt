@@ -14,6 +14,7 @@ import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.ContactOrBot
 import net.mamoe.mirai.contact.MemberPermission
 import net.mamoe.mirai.contact.getMember
+import net.mamoe.mirai.data.UserProfile
 import net.mamoe.mirai.event.broadcast
 import net.mamoe.mirai.event.events.*
 import net.mamoe.mirai.internal.MiraiImpl
@@ -272,5 +273,9 @@ internal class MockMiraiImpl : MiraiImpl() {
             suffix = ""
         ).broadcast()
         return true
+    }
+
+    override suspend fun queryProfile(bot: Bot, targetId: Long): UserProfile {
+        return bot.mock().userProfileService.doQueryUserProfile(targetId)
     }
 }

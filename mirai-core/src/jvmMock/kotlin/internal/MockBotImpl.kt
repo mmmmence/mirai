@@ -39,6 +39,7 @@ import net.mamoe.mirai.mock.internal.components.MockEventDispatcherImpl
 import net.mamoe.mirai.mock.internal.contact.MockFriendImpl
 import net.mamoe.mirai.mock.internal.contact.MockGroupImpl
 import net.mamoe.mirai.mock.internal.contact.MockStrangerImpl
+import net.mamoe.mirai.mock.userprofile.UserProfileService
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.mock.utils.simpleMemberInfo
 import net.mamoe.mirai.utils.*
@@ -51,7 +52,8 @@ internal class MockBotImpl(
     override val nick: String,
     override val nameGenerator: NameGenerator,
     override val tmpFsServer: TmpFsServer,
-    override val msgDatabase: MessageDatabase
+    override val msgDatabase: MessageDatabase,
+    override val userProfileService: UserProfileService,
 ) : MockBot, BotWithComponents {
     init {
         tmpFsServer.startup()
