@@ -195,7 +195,8 @@ internal class MockGroupImpl(
     }
 
     @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-    override suspend fun uploadVoice(resource: ExternalResource): Voice = resource.mockUploadVoice()
+    override suspend fun uploadVoice(resource: ExternalResource): Voice =
+        resource.mockUploadVoice(bot)
 
     override suspend fun setEssenceMessage(source: MessageSource): Boolean {
         return true
@@ -205,7 +206,8 @@ internal class MockGroupImpl(
         MockRemoteFileRoot(this)
     }
 
-    override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio = resource.mockUploadAudio()
+    override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio =
+        resource.mockUploadAudio(bot)
 
     override fun toString(): String {
         return "$name($id)"

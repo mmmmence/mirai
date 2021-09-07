@@ -13,7 +13,9 @@ import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.PermissionDeniedException
 import net.mamoe.mirai.internal.contact.uin
+import net.mamoe.mirai.internal.message.OnlineAudioImpl
 import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.utils.ExternalResource
 import net.mamoe.mirai.utils.toUHexString
@@ -37,7 +39,7 @@ internal infix fun MessageSource.plusMsg(msg: Message): MessageChain = buildMess
     }
 }
 
-internal suspend fun ExternalResource.mockUploadAudio() = inResource {
+internal suspend fun ExternalResource.mockUploadAudio(bot: MockBot) = inResource {
     OfflineAudio(
         filename = md5.toUHexString() + ".amr",
         fileMd5 = md5,
@@ -47,13 +49,15 @@ internal suspend fun ExternalResource.mockUploadAudio() = inResource {
     )
 }
 
-internal suspend fun ExternalResource.mockUploadVoice() = inResource {
+internal suspend fun ExternalResource.mockUploadVoice(bot: MockBot) = kotlin.run {
+    val md5 = this.md5
+    val size = this.size
     @Suppress("DEPRECATION")
     Voice(
         fileName = md5.toUHexString() + ".amr",
         md5 = md5,
         fileSize = size,
-        _url = "https://www.baidu.com"
+        _url = bot.tmpFsServer.uploadFileAndGetUrl(this)
     )
 }
 
@@ -64,3 +68,19 @@ internal val Group.mockUin: Long
         is MockGroup -> this.uin
         else -> this.uin
     }
+
+
+internal suspend fun ExternalResource.mockImplUploadAudioAsOnline(bot: MockBot): OnlineAudio {
+    val md5 = this.md5
+    val size = this.size
+    return OnlineAudioImpl(
+        filename = md5.toUHexString() + ".amr",
+        fileMd5 = md5,
+        fileSize = size,
+        codec = AudioCodec.SILK,
+        url = bot.tmpFsServer.uploadFileAndGetUrl(this),
+        length = size,
+        originalPtt = null,
+    )
+}
+

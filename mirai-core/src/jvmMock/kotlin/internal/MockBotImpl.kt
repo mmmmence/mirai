@@ -22,11 +22,9 @@ import net.mamoe.mirai.event.events.BotEvent
 import net.mamoe.mirai.event.events.BotOnlineEvent
 import net.mamoe.mirai.event.events.BotReloginEvent
 import net.mamoe.mirai.internal.BotWithComponents
-import net.mamoe.mirai.internal.message.OnlineAudioImpl
 import net.mamoe.mirai.internal.network.component.ComponentStorage
 import net.mamoe.mirai.internal.network.component.ConcurrentComponentStorage
 import net.mamoe.mirai.internal.network.components.EventDispatcher
-import net.mamoe.mirai.message.data.AudioCodec
 import net.mamoe.mirai.message.data.OnlineAudio
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.contact.MockFriend
@@ -39,6 +37,7 @@ import net.mamoe.mirai.mock.internal.components.MockEventDispatcherImpl
 import net.mamoe.mirai.mock.internal.contact.MockFriendImpl
 import net.mamoe.mirai.mock.internal.contact.MockGroupImpl
 import net.mamoe.mirai.mock.internal.contact.MockStrangerImpl
+import net.mamoe.mirai.mock.internal.contact.mockImplUploadAudioAsOnline
 import net.mamoe.mirai.mock.userprofile.UserProfileService
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.mock.utils.simpleMemberInfo
@@ -140,17 +139,6 @@ internal class MockBotImpl(
     }
 
     override suspend fun uploadOnlineAudio(resource: ExternalResource): OnlineAudio {
-        val md5 = resource.md5
-        val size = resource.size
-        val id = tmpFsServer.uploadFile(resource)
-        return OnlineAudioImpl(
-            filename = "$id.amr",
-            fileMd5 = md5,
-            fileSize = size,
-            codec = AudioCodec.SILK,
-            url = tmpFsServer.getHttpUrl(id),
-            length = size,
-            originalPtt = null
-        )
+        return resource.mockImplUploadAudioAsOnline(this)
     }
 }

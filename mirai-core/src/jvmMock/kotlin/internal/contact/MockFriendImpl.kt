@@ -63,7 +63,8 @@ internal class MockFriendImpl(
         }
     }
 
-    override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio = resource.mockUploadAudio()
+    override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio =
+        resource.mockUploadAudio(bot)
 
     override suspend fun says(message: MessageChain): MessageChain {
         val src = newMsgSrc(true) { ids, internalIds, time ->

@@ -18,14 +18,12 @@ import net.mamoe.mirai.event.events.MessageRecallEvent
 import net.mamoe.mirai.event.events.NudgeEvent
 import net.mamoe.mirai.message.MessageReceipt
 import net.mamoe.mirai.message.action.Nudge
-import net.mamoe.mirai.message.data.MessageChain
-import net.mamoe.mirai.message.data.MessageSource
-import net.mamoe.mirai.message.data.OnlineMessageSource
-import net.mamoe.mirai.message.data.source
+import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.MockBotDSL
 import net.mamoe.mirai.mock.contact.*
 import net.mamoe.mirai.mock.database.removeMessageInfo
+import net.mamoe.mirai.utils.ExternalResource
 import net.mamoe.mirai.utils.cast
 import java.util.*
 import kotlin.contracts.contract
@@ -127,6 +125,7 @@ public suspend fun MessageChain.mockFireRecalled(operator: Contact? = null) {
     source.mockFireRecalled(operator)
 }
 
+@MockBotDSL
 public suspend fun MessageSource.mockFireRecalled(operator: Contact? = null) {
     val source = this
     if (source is OnlineMessageSource) {
@@ -169,4 +168,9 @@ public suspend fun MessageSource.mockFireRecalled(operator: Contact? = null) {
 @MockBotDSL
 public suspend fun MessageReceipt<*>.mockFireRecalled(operator: Contact? = null) {
     this.source.mockFireRecalled(operator)
+}
+
+@MockBotDSL
+public suspend fun ExternalResource.mockUploadAsOnlineAudio(bot: MockBot): OnlineAudio {
+    return bot.uploadOnlineAudio(this)
 }

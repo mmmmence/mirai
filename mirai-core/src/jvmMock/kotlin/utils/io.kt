@@ -10,6 +10,8 @@
 package net.mamoe.mirai.mock.utils
 
 import java.io.InputStream
+import java.nio.file.Files
+import java.nio.file.Path
 
 
 public fun InputStream.dropAndClose(bufferSize: Int = 2048): Unit = use {
@@ -24,3 +26,6 @@ public fun InputStream.drop(bufferSize: Int = 2048) {
         }
     }
 }
+
+public val Path.isFile: Boolean get() = Files.exists(this) && !Files.isDirectory(this)
+
